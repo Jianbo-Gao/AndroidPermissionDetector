@@ -9,11 +9,9 @@ import xmlDecompiler
 
 def extract(apkPath, xmlPath=None):
 
-	if apkPath == None:
-		print "xmlExtracter.extract: apkPath is None."
-		return False
+	print apkPath+" extracting..."
 
-	if ".apk" in apkPath:
+	if apkPath.endswith(".apk"):
 		apk = zipfile.ZipFile(apkPath)
 
 		if "AndroidManifest.xml" in apk.namelist():
