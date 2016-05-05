@@ -5,10 +5,8 @@
 # Main Machine Learning
 
 from numpy import *
-import ConfigParser, os, json
-import xmlExtracter, xmlParser, logRegression, listReas
-
-
+import os, json
+import xmlExtracter, xmlParser, logRegression, listReas, log
 
 class MachineLearning:
 
@@ -30,12 +28,12 @@ class MachineLearning:
 		for apk in os.listdir(apkDirPath):
 			if not apk.endswith(".apk"):
 				continue
-			if apkDirPath.endswith("/"):
-				apkPath = apkDirPath+apk
-			else:
-				apkPath = apkDirPath + "/" + apk
+			apkPath = os.path.join(apkDirPath, apk)
 			xmlString = xmlExtracter.extract(apkPath)
-			apkPermissionsList.append(xmlParser.parseString(xmlString))
+			if xmlString:
+				apkPermissions = xmlParser.parseString(xmlString)
+				if apkPermissions:
+					apkPermissionsList.append(apkPermissions)
 
 		# delete useless permissions.
 		# calculate sum of every permission in R, E, A, S.
@@ -51,34 +49,47 @@ class MachineLearning:
 					permissionsList.remove(permission)
 		return apkPermissionsList, reasPermissionsSumDict
 
+	def _calculateApkScore(self, permissionsScoreDict, apkPermissions):
+		rScore = eScore = aScore = sScore = 0.0
+		for permission in apkPermissions:
+			if permission in self.rPermissionsList:
+				rScore += permissionsScoreDict[permission]
+			if permission in self.ePermissionsList:
+				eScore += permissionsScoreDict[permission]
+			if permission in self.aPermissionsList:
+				aScore += permissionsScoreDict[permission]
+			if permission in self.sPermissionsList:
+				sScore += permissionsScoreDict[permission]
+		return [rScore,eScore,aScore,sScore]
+
 	def _calculateApkScoreList(self, permissionsScoreDict, apkPermissionsList):
 		apkScoreList = []
 		for apkPermissions in apkPermissionsList:
-			rScore = eScore = aScore = sScore = 0.0
-			for permission in apkPermissions:
-				if permission in self.rPermissionsList:
-					rScore += permissionsScoreDict[permission]
-				if permission in self.ePermissionsList:
-					eScore += permissionsScoreDict[permission]
-				if permission in self.aPermissionsList:
-					aScore += permissionsScoreDict[permission]
-				if permission in self.sPermissionsList:
-					sScore += permissionsScoreDict[permission]
-			apkScoreList.append([rScore,eScore,aScore,sScore])
+			apkScoreList.append(self._calculateApkScore(permissionsScoreDict, apkPermissions))
 		return apkScoreList
+
+	def _calculateReasScore(self, score):
+		r = (score[0] if score[0] > 0 else 0)
+		e = (score[1] if score[1] > 0 else 0)
+		a = (score[2] if score[2] > 0 else 0)
+		s = (score[3] if score[3] > 0 else 0)
+		return [1.0, r*e, e, r*a*s, a*s]
 
 	def _calculateReasScoreList(self, apkScoreList):
 		reasScoreList = []
 		for score in apkScoreList:
-			r = score[0]
-			e = score[1]
-			a = score[2]
-			s = score[3]
-			reasScoreList.append([1.0, r*e, e, r*a*s, a*s])
+			reasScoreList.append(self._calculateReasScore(score))
 		return reasScoreList
 
 	# use Google samples and Malware samples
-	def train(self, googleDirPath, malwareDirPath, numIter, gui):
+	def train(self, googleDirPath, malwareDirPath, paramFilePath=None, numIter=200, gui=False):
+
+		if not os.path.isdir(googleDirPath):
+			log.error("no such google dir")
+			exit()
+		if not os.path.isdir(malwareDirPath):
+			log.error("no such malware dir")
+			exit()
 
 		# get google and malware permissionsList and reasPermissionsSumDict
 		googleApkPermissionsList, googleReasPermissionsSumDict = self._loadPermissions(googleDirPath)
@@ -105,5 +116,63 @@ class MachineLearning:
 		malwareLen = len(malwareReasScoreList)
 		labelList = hstack((ones(googleLen), zeros(malwareLen)))
 
-		return logRegression.smoothStocGradAscent(mat(apkScoreList), labelList.transpose(), numIter, gui)
+		weights = logRegression.smoothStocGradAscent(mat(apkScoreList), labelList.transpose(), numIter, gui)
+		weightsList = weights.transpose().tolist()[0]
+
+		params = {}
+		params['weights'] = weightsList
+		params['permissions'] = permissionsScoreDict
+		params['googleNum'] = googleLen
+		params['malwareNum'] = malwareLen
+		paramsJson = json.dumps(params)
+
+		# write params into paramFile
+		if paramFilePath != None:
+			try:
+				paramFile = open(paramFilePath, 'w')
+				paramFile.write(paramsJson)
+				paramFile.close()
+			except Exception, e:
+				log.error("write params into paramFile failed.")
+
+		return paramsJson
+
+	# test apk file using param
+	def test(self, testApkFilePath, paramFilePath):
+		if not os.path.isfile(testApkFilePath):
+			log.error("no such apk file.")
+			exit()
+		if not os.path.isfile(paramFilePath):
+			log.error("no such param file.")
+			exit()
+
+		xmlString = xmlExtracter.extract(testApkFilePath)
+		permissionsList = xmlParser.parseString(xmlString)
+
+		# read params
+		try:
+			paramFile = open(paramFilePath, 'r')
+			paramsJson = paramFile.readline()
+			paramFile.close()
+		except Exception, e:
+			log.error("can not read params")
+			return
+		try:
+			params = json.loads(paramsJson)
+		except Exception, e:
+			log.error("params type error.")
+			return
+
+		# test method
+		permissions = params['permissions']
+		weights = params['weights']
+		apkScoreList = self._calculateApkScore(permissions, permissionsList)
+		reasScoreList = self._calculateReasScore(apkScoreList)
+		weightsMat = mat(weights)
+		reasScoreMat = mat(reasScoreList).transpose()
+		testScoreMat = weightsMat * reasScoreMat
+		testScore = testScoreMat[0,0]
+		logRegressionScore = 1.0/(1+exp(-testScore))
+
+		return logRegressionScore
 

@@ -5,11 +5,11 @@
 # Extract AndroidManifest.xml from *.apk
 
 import zipfile
-import xmlDecompiler
+import xmlDecompiler, log
 
 def extract(apkPath, xmlPath=None):
 
-	print apkPath+" extracting..."
+	log.debug(apkPath+" extracting...")
 
 	if apkPath.endswith(".apk"):
 		apk = zipfile.ZipFile(apkPath)
@@ -28,9 +28,9 @@ def extract(apkPath, xmlPath=None):
 				return True
 
 		else:
-			print "xmlExtracter.extract: AndroidManifest.xml not exist."
+			log.warning("AndroidManifest.xml not exist.")
 			return False
 
 	else:
-		print "xmlExtracter.extract: Unknown file type."
+		log.error("Unknown file type.")
 		return False

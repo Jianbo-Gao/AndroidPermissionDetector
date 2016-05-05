@@ -6,6 +6,7 @@
 
 import xml.dom.minidom
 import json
+import log
 
 def _parse(dom, permissionPath=None):
 
@@ -25,30 +26,30 @@ def _parse(dom, permissionPath=None):
 			f.write(xmlPath+'\n'+json.dumps(permissionList)+'\n')
 			f.close()
 		except:
-			"xmlParser.parseXml: write into json file error."
+			log.error("write into json file error.")
 	return permissionList
 
 
 def parseXml(xmlPath, permissionPath=None):
-	print xmlPath+" parsing..."
+	log.debug(xmlPath+" parsing...")
 	if xmlParser.endswith(".xml"):
 
 		# parse AndroidManifest.xml
 		try:
 			dom = xml.dom.minidom.parse(xmlPath)
 		except:
-			print "xmlParser.parseXml: Parse error."
+			log.warning("xmlParser.parseXml: Parse error.")
 			return False
 		return _parse(dom, permissionPath)
 	else:
-		print "xmlParser.parseXml: Unknown file type."
+		log.warning("Unknown file type.")
 		return False
 
 def parseString(xmlString):
-	print "parsing..."
+	log.debug("xmlString parsing...")
 	try:
 		dom = xml.dom.minidom.parseString(xmlString)
 	except:
-		print "xmlParser.parseString: Parse error."
+		log.warning("Parse error.")
 		return False
 	return _parse(dom)
