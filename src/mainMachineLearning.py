@@ -73,7 +73,10 @@ class MachineLearning:
 		e = (score[1] if score[1] > 0 else 0)
 		a = (score[2] if score[2] > 0 else 0)
 		s = (score[3] if score[3] > 0 else 0)
-		return [1.0, r*e, e, r*a*s, a*s]
+		reScore = (-r*e if (score[0]<0 or score[1]<0) else r*e)
+		rasScore = (-r*a*s if (score[0]<0 or score[2]<0 or score[3]<0) else r*a*s)
+		asScore = (-a*s if (score[2]<0 or score[3]<0) else a*s)
+		return [1.0, reScore, e, rasScore, asScore]
 
 	def _calculateReasScoreList(self, apkScoreList):
 		reasScoreList = []
@@ -82,7 +85,7 @@ class MachineLearning:
 		return reasScoreList
 
 	# use Google samples and Malware samples
-	def train(self, googleDirPath, malwareDirPath, paramFilePath=None, numIter=200, gui=False):
+	def train(self, googleDirPath, malwareDirPath, paramFilePath=None, numIter=200, alphaLen=50, gui=False):
 
 		if not os.path.isdir(googleDirPath):
 			log.error("no such google dir")
@@ -114,9 +117,9 @@ class MachineLearning:
 		apkScoreList = googleReasScoreList + malwareReasScoreList
 		googleLen = len(googleReasScoreList)
 		malwareLen = len(malwareReasScoreList)
-		labelList = hstack((ones(googleLen), zeros(malwareLen)))
+		labelList = hstack((zeros(googleLen), ones(malwareLen)))
 
-		weights = logRegression.smoothStocGradAscent(mat(apkScoreList), labelList.transpose(), numIter, gui)
+		weights = logRegression.smoothStocGradAscent(mat(apkScoreList), labelList.transpose(), numIter, alphaLen, gui)
 		weightsList = weights.transpose().tolist()[0]
 
 		params = {}

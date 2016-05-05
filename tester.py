@@ -52,11 +52,18 @@ def get_args():
 						type=int,
 						help='[Train] Num of iteration during training')
 
+	parser.add_argument('-a', '--alphalen',
+						action='store',
+						default=50,
+						dest='alphaLen',
+						type=int,
+						help='[Train] alpha length in StocGradAscent')
+
 	parser.add_argument('-p', '--param',
 						action='store',
 						default=None,
 						dest='paramName',
-						help='[Train&Test] The name of your training result')
+						help='[Train&Test] The name(if train, except default) of your training result')
 
 	parser.add_argument('-G', '--gui',
 						action='store_true',
@@ -82,11 +89,11 @@ def get_args():
 	args = parser.parse_args()
 	return args
 
-def apiTrain(googleDirPath, malwareDirPath, paramName=None, numIter=200, gui=False, api=True):
+def apiTrain(googleDirPath, malwareDirPath, paramName=None, numIter=200, alphaLen=50, gui=False, api=True):
 	if api:
 		log.set_logger(filename=LOG_PATH)
 	machineLearning = MachineLearning()
-	return machineLearning.train(googleDirPath, malwareDirPath, paramName, numIter, gui)
+	return machineLearning.train(googleDirPath, malwareDirPath, paramName, numIter, alphaLen, gui)
 
 def apiTest(testApkFilePath, paramName=None, api=True):
 	if api:
@@ -122,9 +129,13 @@ def commandLine():
 	if args.trainOpt:
 		log.info("Train start.")
 		if args.googleDirPath and args.malwareDirPath:
+			if args.paramName == "default":
+				log.error("Please do not use 'default' as your train param name")
+				log.error("Train abort")
+				exit()
 			if args.paramName != None:
 				args.paramName = os.path.join(PARAM_DIR_PATH, args.paramName)
-			result = apiTrain(args.googleDirPath, args.malwareDirPath, args.paramName, args.numIter, args.guiOpt, False)
+			result = apiTrain(args.googleDirPath, args.malwareDirPath, args.paramName, args.numIter, args.alphaLen, args.guiOpt, False)
 			if result:
 				log.info("Train finish.")
 				log.info("result: "+result)
