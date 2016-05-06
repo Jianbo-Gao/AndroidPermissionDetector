@@ -26,7 +26,7 @@ def _parse(dom, permissionPath=None):
 			f.write(xmlPath+'\n'+json.dumps(permissionList)+'\n')
 			f.close()
 		except:
-			log.error("write into json file error.")
+			log.error("write into"+permissionPath+"error.")
 	return permissionList
 
 
@@ -38,11 +38,11 @@ def parseXml(xmlPath, permissionPath=None):
 		try:
 			dom = xml.dom.minidom.parse(xmlPath)
 		except:
-			log.warning("xmlParser.parseXml: Parse error.")
+			log.warning(xmlPath+" parse error.")
 			return False
 		return _parse(dom, permissionPath)
 	else:
-		log.warning("Unknown file type.")
+		log.warning(xmlPath+" unknown file type.")
 		return False
 
 def parseString(xmlString):
@@ -50,6 +50,6 @@ def parseString(xmlString):
 	try:
 		dom = xml.dom.minidom.parseString(xmlString)
 	except:
-		log.warning("Parse error.")
+		log.warning("xmlString parse error.")
 		return False
 	return _parse(dom)

@@ -108,7 +108,9 @@ def apiTest(testApkFilePath, paramName=None, api=True):
 def commandLine():
 
 	args = get_args()
-	print "Welcome to use Android Permission Tester(Version 1.0)!"
+	print "############################################################"
+	print "#  Welcome to use Android Permission Tester(Version 1.0)!  #"
+	print "############################################################"
 
 	if args.quietOpt:
 		log.set_logger(filename=LOG_PATH)

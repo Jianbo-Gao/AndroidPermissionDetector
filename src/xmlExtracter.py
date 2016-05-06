@@ -28,12 +28,12 @@ def extract(apkPath, xmlPath=None):
 					f.close()
 					return True
 		except Exception, e:
-			log.warning("not a zip file")
+			log.warning(apkPath+" is not a zip file")
 
 		else:
-			log.warning("AndroidManifest.xml not exist.")
+			log.warning(apkPath+" has no AndroidManifest.xml")
 			return False
 
 	else:
-		log.error("Unknown file type.")
+		log.error(apkPath+"Unknown file type.")
 		return False

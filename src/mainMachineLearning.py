@@ -69,13 +69,15 @@ class MachineLearning:
 		return apkScoreList
 
 	def _calculateReasScore(self, score):
-		r = (score[0] if score[0] > 0 else 0)
-		e = (score[1] if score[1] > 0 else 0)
-		a = (score[2] if score[2] > 0 else 0)
-		s = (score[3] if score[3] > 0 else 0)
-		reScore = (-r*e if (score[0]<0 or score[1]<0) else r*e)
-		rasScore = (-r*a*s if (score[0]<0 or score[2]<0 or score[3]<0) else r*a*s)
+		r = (score[0] if score[0] > 0 else 0)	# r>=0
+		e = score[1]							# e
+		a = abs(score[2])						# a
+		s = abs(score[3])						# s
+		#reScore = (-r*e if (score[0]<0 or score[1]<0) else r*e)
+		#rasScore = (-r*a*s if (score[0]<0 or score[2]<0 or score[3]<0) else r*a*s)
+		reScore = r*e
 		asScore = (-a*s if (score[2]<0 or score[3]<0) else a*s)
+		rasScore = r*asScore
 		return [1.0, reScore, e, rasScore, asScore]
 
 	def _calculateReasScoreList(self, apkScoreList):
@@ -94,9 +96,12 @@ class MachineLearning:
 			log.error("no such malware dir")
 			exit()
 
+		log.info("Load data...")
 		# get google and malware permissionsList and reasPermissionsSumDict
 		googleApkPermissionsList, googleReasPermissionsSumDict = self._loadPermissions(googleDirPath)
 		malwareApkPermissionsList, malwareReasPermissionsSumDict = self._loadPermissions(malwareDirPath)
+		log.info("Load finish.")
+
 
 		# calculate score for every permission
 		permissionsScoreDict = {}
@@ -118,7 +123,20 @@ class MachineLearning:
 		googleLen = len(googleReasScoreList)
 		malwareLen = len(malwareReasScoreList)
 		labelList = hstack((zeros(googleLen), ones(malwareLen)))
+		
+		"""
+		scoreMat = mat(apkScoreList)
+		f = open("score", 'w')
+		f.write(str(scoreMat))
+		f.close()
 
+		label = labelList.transpose()
+		f = open("label", 'w')
+		f.write(str(label))
+		f.close()
+		"""
+
+		
 		weights = logRegression.smoothStocGradAscent(mat(apkScoreList), labelList.transpose(), numIter, alphaLen, gui)
 		weightsList = weights.transpose().tolist()[0]
 
@@ -150,7 +168,14 @@ class MachineLearning:
 			exit()
 
 		xmlString = xmlExtracter.extract(testApkFilePath)
-		permissionsList = xmlParser.parseString(xmlString)
+		if xmlString:
+			permissionsList = xmlParser.parseString(xmlString)
+		else:
+			log.error("Test abort")
+			exit()
+		if not permissionsList:
+			log.error("Test abort")
+			exit()
 
 		# read params
 		try:
@@ -175,6 +200,7 @@ class MachineLearning:
 		reasScoreMat = mat(reasScoreList).transpose()
 		testScoreMat = weightsMat * reasScoreMat
 		testScore = testScoreMat[0,0]
+		#print testScore
 		logRegressionScore = 1.0/(1+exp(-testScore))
 
 		return logRegressionScore
