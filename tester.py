@@ -65,12 +65,6 @@ def get_args():
 						dest='paramName',
 						help='[Train&Test] The name(if train, except default) of your training result')
 
-	parser.add_argument('-G', '--gui',
-						action='store_true',
-						default=False,
-						dest='guiOpt',
-						help='[Train] Show params in GUI')
-
 	parser.add_argument('-f', '--file',
 						action='store',
 						dest='apkFilePath',
@@ -89,15 +83,12 @@ def get_args():
 	args = parser.parse_args()
 	return args
 
-def apiTrain(googleDirPath, malwareDirPath, paramName=None, numIter=200, alphaLen=50, gui=False, api=True):
-	if api:
-		log.set_logger(filename=LOG_PATH)
-	machineLearning = MachineLearning()
-	return machineLearning.train(googleDirPath, malwareDirPath, paramName, numIter, alphaLen, gui)
+def cmdTrain(googleDirPath, malwareDirPath, paramName=None):
 
-def apiTest(testApkFilePath, paramName=None, api=True):
-	if api:
-		log.set_logger(filename=LOG_PATH)
+	machineLearning = MachineLearning()
+	return machineLearning.train(googleDirPath, malwareDirPath, paramName)
+
+def cmdTest(testApkFilePath, paramName=None):
 	machineLearning = MachineLearning()
 	if paramName == None:
 		paramFilePath = PARAM_DEFAULT_PATH
@@ -137,7 +128,7 @@ def commandLine():
 				exit()
 			if args.paramName != None:
 				args.paramName = os.path.join(PARAM_DIR_PATH, args.paramName)
-			result = apiTrain(args.googleDirPath, args.malwareDirPath, args.paramName, args.numIter, args.alphaLen, args.guiOpt, False)
+			result = cmdTrain(args.googleDirPath, args.malwareDirPath, args.paramName)
 			if result:
 				log.info("Train finish.")
 				log.info("result: "+result)
@@ -151,7 +142,7 @@ def commandLine():
 		if args.apkFilePath:
 			if args.paramName != None:
 				args.paramName = os.path.join(PARAM_DIR_PATH, args.paramName)
-			result = apiTest(args.apkFilePath, args.paramName, False)
+			result = cmdTest(args.apkFilePath, args.paramName)
 			if result:
 				log.info("Test finish.")
 				log.info("result: "+str(result))

@@ -15,7 +15,7 @@ def checkModules():
 	modules = [
 		'xml',
 		'numpy', 
-		'matplotlib', 
+		'sklearn', 
 		'ConfigParser', 
 		'os',
 		'sys', 
@@ -30,8 +30,6 @@ def checkModules():
 		except Exception, e:
 			print "%30s" % ("["+COLOR_RED+"Success"+COLOR_RESET+"]")
 			print "Please install module named " + module
-			if module == 'matplotlib':
-				print "If you do not use gui, you can comment out matplotlib in logRegression.py"
 			return False
 	print "%30s" % ("["+COLOR_GREEN+"Success"+COLOR_RESET+"]")
 	return True

@@ -4,48 +4,30 @@
 # @author: Garfy
 # Logistic Regression
 
+from sklearn import preprocessing, linear_model
 from numpy import *
-import random, warnings
-import matplotlib.pyplot as plt
 import log
 
 
-# if you do not have matplotlib and do not want to use gui,
-# you can comment out "import matpllotlib" and _gui() method.
-def _gui(numIter, weightsMatrix):
-	weightsList = weightsMatrix.tolist()
-	plt.figure()
-	for i in range(5):
-		plt.subplot(2, 3, i)
-		plt.plot(range(numIter),weightsList[i])
-	plt.show()
+def train(scoreList, labelList):
+	# Mat
+	scoreMat = mat(scoreList)
 
+	# Normalize data
+	normalizedScoreMat = preprocessing.normalize(scoreMat)
 
-def sigmoid(inX):
-	return 1.0/(1+exp(-inX))
+	# Logistic Regression
+	lrModel = linear_model.LogisticRegression()
+	lrModel.fit(normalizedScoreMat, labelList)
 
-def smoothStocGradAscent(dataMatrix, classLabels, numIter, alphaLen, gui):
-	log.info("Calculating...")
-	warnings.filterwarnings("ignore")
-	weightsMatrix = empty((5,numIter))
-	m, n = shape(dataMatrix)
-	weights = ones((n, 1))
-	for j in range(numIter):
-		dataIndex = range(m)
-		for i in range(m):
-			alpha = alphaLen/(1.0+j+i)+0.01
-			randIndex = int(random.uniform(0,len(dataIndex)))
-			h = sigmoid(sum(dataMatrix[randIndex]*weights))
-			error = classLabels[randIndex] - h
-			weights = weights + alpha * error * dataMatrix[randIndex].transpose()
-			del(dataIndex[randIndex])
-		weightsMatrix[:, j] = weights.transpose()
+	# Return params
+	return lrModel.coef_, lrModel.intercept_
 
-	log.info("Calculate finish.")
-
-	if gui:
-		_gui(numIter, weightsMatrix)
-
-
-	return weights
-
+def test(scoreList, coef_, intercept_):
+	# Init 
+	lrModel = linear_model.LogisticRegression()
+	lrModel.coef_ = coef_
+	lrModel.intercept_ = intercept_
+	prob = lrModel.predict_proba(preprocessing.normalize(scoreList))[1]
+	apkScore = "%.2f" % (prob*100)
+	return apkScore

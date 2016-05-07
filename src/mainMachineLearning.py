@@ -79,6 +79,7 @@ class MachineLearning:
 		asScore = (-a*s if (score[2]<0 or score[3]<0) else a*s)
 		rasScore = r*asScore
 		return [1.0, reScore, e, rasScore, asScore]
+		#return [reScore, e, rasScore, asScore]
 
 	def _calculateReasScoreList(self, apkScoreList):
 		reasScoreList = []
@@ -87,7 +88,7 @@ class MachineLearning:
 		return reasScoreList
 
 	# use Google samples and Malware samples
-	def train(self, googleDirPath, malwareDirPath, paramFilePath=None, numIter=200, alphaLen=50, gui=False):
+	def train(self, googleDirPath, malwareDirPath, paramFilePath=None):
 
 		if not os.path.isdir(googleDirPath):
 			log.error("no such google dir")
@@ -124,24 +125,13 @@ class MachineLearning:
 		malwareLen = len(malwareReasScoreList)
 		labelList = hstack((zeros(googleLen), ones(malwareLen)))
 		
-		"""
-		scoreMat = mat(apkScoreList)
-		f = open("score", 'w')
-		f.write(str(scoreMat))
-		f.close()
+		# Training
+		coef_, intercept_ = logRegression.train(apkScoreList, labelList)
 
-		label = labelList.transpose()
-		f = open("label", 'w')
-		f.write(str(label))
-		f.close()
-		"""
-
-		
-		weights = logRegression.smoothStocGradAscent(mat(apkScoreList), labelList.transpose(), numIter, alphaLen, gui)
-		weightsList = weights.transpose().tolist()[0]
-
+		# Record params
 		params = {}
-		params['weights'] = weightsList
+		params['coef_'] = coef_
+		params['intercept_'] = intercept_
 		params['permissions'] = permissionsScoreDict
 		params['googleNum'] = googleLen
 		params['malwareNum'] = malwareLen
@@ -193,15 +183,11 @@ class MachineLearning:
 
 		# test method
 		permissions = params['permissions']
-		weights = params['weights']
+		coef_ = params['coef_']
+		intercept_ = params['intercept_']
 		apkScoreList = self._calculateApkScore(permissions, permissionsList)
 		reasScoreList = self._calculateReasScore(apkScoreList)
-		weightsMat = mat(weights)
-		reasScoreMat = mat(reasScoreList).transpose()
-		testScoreMat = weightsMat * reasScoreMat
-		testScore = testScoreMat[0,0]
-		#print testScore
-		logRegressionScore = 1.0/(1+exp(-testScore))
+		apkScore = logRegression.test(reasScoreList, coef_, intercept_)
 
-		return logRegressionScore
+		return apkScore
 
