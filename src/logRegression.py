@@ -21,13 +21,15 @@ def train(scoreList, labelList):
 	lrModel.fit(normalizedScoreMat, labelList)
 
 	# Return params
-	return lrModel.coef_, lrModel.intercept_
+	return lrModel.coef_.tolist(), lrModel.intercept_.tolist()
 
 def test(scoreList, coef_, intercept_):
-	# Init 
+	# Init: transform array to numpy.ndarray and load params
 	lrModel = linear_model.LogisticRegression()
-	lrModel.coef_ = coef_
-	lrModel.intercept_ = intercept_
-	prob = lrModel.predict_proba(preprocessing.normalize(scoreList))[1]
+	lrModel.coef_ = ndarray(shape=(1,5), dtype=float, buffer=array(coef_))
+	lrModel.intercept_ = ndarray(shape=(1,), dtype=float, buffer=array(intercept_))
+
+	# Calculate Control power
+	prob = lrModel.predict_proba(preprocessing.normalize([scoreList]))[0][1]
 	apkScore = "%.2f" % (prob*100)
 	return apkScore

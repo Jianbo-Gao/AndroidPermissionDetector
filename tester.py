@@ -45,20 +45,6 @@ def get_args():
 						dest='malwareDirPath',
 						help='[Train] Malware samples dir path')
 
-	parser.add_argument('-n', '--numiter',
-						action='store',
-						default=200,
-						dest='numIter',
-						type=int,
-						help='[Train] Num of iteration during training')
-
-	parser.add_argument('-a', '--alphalen',
-						action='store',
-						default=50,
-						dest='alphaLen',
-						type=int,
-						help='[Train] alpha length in StocGradAscent')
-
 	parser.add_argument('-p', '--param',
 						action='store',
 						default=None,
@@ -78,7 +64,7 @@ def get_args():
 
 	parser.add_argument('-V', '--version',
 						action='version',
-						version='Android Permission Tester 1.0')
+						version='Android Permission Tester 1.0.2')
 
 	args = parser.parse_args()
 	return args
@@ -99,9 +85,9 @@ def cmdTest(testApkFilePath, paramName=None):
 def commandLine():
 
 	args = get_args()
-	print "############################################################"
-	print "#  Welcome to use Android Permission Tester(Version 1.0)!  #"
-	print "############################################################"
+	print "\n##############################################################"
+	print "#  Welcome to use Android Permission Tester(Version 1.0.2)!  #"
+	print "##############################################################\n"
 
 	if args.quietOpt:
 		log.set_logger(filename=LOG_PATH)
@@ -146,6 +132,7 @@ def commandLine():
 			if result:
 				log.info("Test finish.")
 				log.info("result: "+str(result))
+				print "[Test Result] Control Power: "+result
 		else:
 			log.error("You need an apk file to test.")
 			log.error("Test abort")

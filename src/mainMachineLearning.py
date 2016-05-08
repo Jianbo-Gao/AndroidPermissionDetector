@@ -128,6 +128,7 @@ class MachineLearning:
 		# Training
 		coef_, intercept_ = logRegression.train(apkScoreList, labelList)
 
+
 		# Record params
 		params = {}
 		params['coef_'] = coef_
