@@ -7,11 +7,12 @@
 
 # For market spider and website.
 
-import os, argparse, datetime
+import os, argparse, datetime, json
 from src import *
 
 DIR_PATH = os.path.split(os.path.realpath(__file__))[0]
-LOG_PATH = os.path.join(DIR_PATH, "log", str(datetime.date.today())+".log")
+LOG_DIR_PATH = os.path.join(DIR_PATH, "log")
+LOG_PATH = os.path.join(LOG_DIR_PATH, str(datetime.date.today())+".log")
 PARAM_DIR_PATH = os.path.join(DIR_PATH, "param")
 PARAM_DEFAULT_PATH = os.path.join(PARAM_DIR_PATH, "default")
 
@@ -19,11 +20,8 @@ def get_args():
 	parser = argparse.ArgumentParser(
 		description="Process args for Android Permission Tester")
 
-	parser.add_argument('-f', '--file',
-						required=True,
-						action='store',
-						dest='apkFilePath',
-						help='[Test] The path of apk file to test')
+	parser.add_argument('file',
+						help='[Detect] The path of apk file to test')
 
 	parser.add_argument('-V', '--version',
 						action='version',
@@ -54,10 +52,28 @@ def test(path):
 def commandLine():
 	args = get_args()
 
+	if not os.path.isdir(LOG_DIR_PATH):
+		os.mkdir(LOG_DIR_PATH)
 	log.set_logger(filename=LOG_PATH, level="CRITICAL:DEBUG")
 	log.debug(str(args))
 
-	print test(args.apkFilePath)
+	score = float(test(args.file))
+
+	if score:
+		if score < 33.34:
+			degree = "0"
+		elif score < 66.67:
+			degree = "1"
+		elif score <= 100:
+			degree = "2"
+		else:
+			degree = "unknown"
+
+		result = {}
+		result['score'] = score
+		result['degree'] = degree
+
+		print json.dumps(result)
 
 if __name__ == "__main__":
 	commandLine()
