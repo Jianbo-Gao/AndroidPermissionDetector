@@ -2,8 +2,8 @@
 # -*- coding: UTF-8 -*-
 
 # @author: Garfy
-# simple tester: no train, on log output, no other functions, 
-# only test an apk file simply.
+# api: no train, on log output, no other functions, 
+# only detect an apk file simply.
 
 # For market spider and website.
 
@@ -18,14 +18,14 @@ PARAM_DEFAULT_PATH = os.path.join(PARAM_DIR_PATH, "default")
 
 def get_args():
 	parser = argparse.ArgumentParser(
-		description="Process args for Android Permission Tester")
+		description="Process args for Android Permission Detecter")
 
 	parser.add_argument('file',
-						help='[Detect] The path of apk file to test')
+						help='[Detect] The path of apk file to detect')
 
 	parser.add_argument('-V', '--version',
 						action='version',
-						version='Android Permission Tester 1.0.2')
+						version='Android Permission Detecter 1.0.2')
 
 	args = parser.parse_args()
 	return args
@@ -41,12 +41,12 @@ def test(path):
 		machineLearning = MachineLearning()
 		result = machineLearning.test(path,paramPath)
 		if result:
-			log.info("Test finish.")
+			log.info("Detect finish.")
 			log.info("result: "+str(result))
 			return result
 		else:
 			log.error("You need an apk file to test.")
-			log.error("Test abort")
+			log.error("Detect abort")
 			return
 
 def commandLine():

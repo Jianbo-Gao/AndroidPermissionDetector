@@ -2,38 +2,39 @@
 # -*- coding: UTF-8 -*-
 
 # @author: Garfy
-# Android Permission Tester
+# Android Permission Detecter
 
 
 import os, argparse, datetime
 from src import *
 
 DIR_PATH = os.path.split(os.path.realpath(__file__))[0]
-LOG_PATH = os.path.join(DIR_PATH, "log", str(datetime.date.today())+".log")
+LOG_DIR_PATH = os.path.join(DIR_PATH, "log")
+LOG_PATH = os.path.join(LOG_DIR_PATH, str(datetime.date.today())+".log")
 PARAM_DIR_PATH = os.path.join(DIR_PATH, "param")
 PARAM_DEFAULT_PATH = os.path.join(PARAM_DIR_PATH, "default")
 
 def get_args():
 	parser = argparse.ArgumentParser(
-		description="Process args for Android Permission Tester")
+		description="Process args for Android Permission Detecter")
 
 	parser.add_argument('-c', '--check',
 						action='store_true',
 						default=False,
 						dest='checkOpt',
-						help='[Train&Test]: Check related modules before use(recommend)')
+						help='[Train&Detect]: Check related modules before use(recommend)')
 
-	parser.add_argument('-T', '--train',
+	parser.add_argument('-t', '--train',
 						action='store_true',
 						default=False,
 						dest='trainOpt',
 						help='Train with samples')
 
-	parser.add_argument('-t', '--test',
+	parser.add_argument('-d', '--detect',
 						action='store_true',
 						default=False,
 						dest='testOpt',
-						help='Test apk file')
+						help='Detect apk file')
 
 	parser.add_argument('-g', '--google',
 						action='store',
@@ -49,22 +50,22 @@ def get_args():
 						action='store',
 						default=None,
 						dest='paramName',
-						help='[Train&Test] The name(if train, except default) of your training result')
+						help='[Train&Detect] The name(if train, except default) of your training result')
 
 	parser.add_argument('-f', '--file',
 						action='store',
 						dest='apkFilePath',
-						help='[Test] The path of apk file to test')
+						help='[Detect] The path of apk file to detect')
 
 	parser.add_argument('-q', '--quiet',
 						action='store_true',
 						default=False,
 						dest='quietOpt',
-						help='[Train&Test] No output except result and error')
+						help='[Train&Detect] No output except result and error')
 
 	parser.add_argument('-V', '--version',
 						action='version',
-						version='Android Permission Tester 1.0.2')
+						version='Android Permission Detecter 1.0.2')
 
 	args = parser.parse_args()
 	return args
@@ -85,9 +86,12 @@ def cmdTest(testApkFilePath, paramName=None):
 def commandLine():
 
 	args = get_args()
-	print "\n##############################################################"
-	print "#  Welcome to use Android Permission Tester(Version 1.0.2)!  #"
-	print "##############################################################\n"
+	print "\n################################################################"
+	print "#  Welcome to use Android Permission Detecter(Version 1.0.2)!  #"
+	print "################################################################\n"
+
+	if not os.path.isdir(LOG_DIR_PATH):
+		os.mkdir(LOG_DIR_PATH)
 
 	if args.quietOpt:
 		log.set_logger(filename=LOG_PATH)
@@ -102,7 +106,7 @@ def commandLine():
 			exit()
 
 	if args.trainOpt and args.testOpt:
-		log.error("You cannot train and test at the same time")
+		log.error("You cannot train and detect at the same time")
 		exit()
 
 	if args.trainOpt:
@@ -124,18 +128,18 @@ def commandLine():
 			exit()
 
 	if args.testOpt:
-		log.info("Test start.")
+		log.info("Detect start.")
 		if args.apkFilePath:
 			if args.paramName != None:
 				args.paramName = os.path.join(PARAM_DIR_PATH, args.paramName)
 			result = cmdTest(args.apkFilePath, args.paramName)
 			if result:
-				log.info("Test finish.")
+				log.info("Detect finish.")
 				log.info("result: "+str(result))
-				print "[Test Result] Control Power: "+result
+				print "[Detect Result] Control Power: "+result
 		else:
-			log.error("You need an apk file to test.")
-			log.error("Test abort")
+			log.error("You need an apk file to detect.")
+			log.error("Detect abort")
 			exit()
 
 
