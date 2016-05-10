@@ -1,2 +1,2 @@
 # AndroidPermissionTester
-Test an Android application based on permissions
+Detect an Android application based on permissions

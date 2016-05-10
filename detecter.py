@@ -136,7 +136,13 @@ def commandLine():
 			if result:
 				log.info("Detect finish.")
 				log.info("result: "+str(result))
-				print "[Detect Result] Control Power: "+result
+				print "#################"
+				print "# Detect Report #"
+				print "#################"
+				print "[Control Power]\n"+result[0]
+				print "[Dangerous Permissions]"
+				for permission in result[1]:
+					print permission
 		else:
 			log.error("You need an apk file to detect.")
 			log.error("Detect abort")

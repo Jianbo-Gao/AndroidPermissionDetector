@@ -153,9 +153,11 @@ class MachineLearning:
 	def test(self, testApkFilePath, paramFilePath):
 		if not os.path.isfile(testApkFilePath):
 			log.error("no such apk file.")
+			log.error("Test abort")
 			exit()
 		if not os.path.isfile(paramFilePath):
 			log.error("no such param file.")
+			log.error("Test abort")
 			exit()
 
 		xmlString = xmlExtracter.extract(testApkFilePath)
@@ -182,13 +184,23 @@ class MachineLearning:
 			log.error("params type error.")
 			return
 
-		# test method
-		permissions = params['permissions']
+		# detect score method
+		reasPermissions = params['permissions']
 		coef_ = params['coef_']
 		intercept_ = params['intercept_']
-		apkScoreList = self._calculateApkScore(permissions, permissionsList)
+		googleNum = params['googleNum']
+		malwareNum = params['malwareNum']
+		apkScoreList = self._calculateApkScore(reasPermissions, permissionsList)
 		reasScoreList = self._calculateReasScore(apkScoreList)
 		apkScore = logRegression.test(reasScoreList, coef_, intercept_)
 
-		return apkScore
+		# detect dangerous permissions method
+		dangerousPermissions = []
+		for permission in permissionsList:
+			if permission in reasPermissions:
+				proba = (1.0*reasPermissions[permission]*googleNum/malwareNum)/(googleNum+malwareNum)
+				if proba > 0.1:
+					dangerousPermissions.append(permission)
+
+		return apkScore, dangerousPermissions
 

@@ -45,9 +45,9 @@ def test(path):
 			log.info("result: "+str(result))
 			return result
 		else:
-			log.error("You need an apk file to test.")
+			log.error("You need an apk file to detect.")
 			log.error("Detect abort")
-			return
+			exit()
 
 def commandLine():
 	args = get_args()
@@ -57,7 +57,7 @@ def commandLine():
 	log.set_logger(filename=LOG_PATH, level="CRITICAL:DEBUG")
 	log.debug(str(args))
 
-	score = float(test(args.file))
+	score = float(test(args.file)[0])
 
 	if score:
 		if score < 33.34:
