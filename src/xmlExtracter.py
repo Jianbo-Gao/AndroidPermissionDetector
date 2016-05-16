@@ -11,29 +11,28 @@ def extract(apkPath, xmlPath=None):
 
 	log.debug(apkPath+" extracting...")
 
-	if apkPath.endswith(".apk"):
+	try:
+		apk = zipfile.ZipFile(apkPath)
+	except Exception, e:
+		log.warning(apkPath+" is not a zip file")
+		return False
+
+	if "AndroidManifest.xml" in apk.namelist():
 		try:
-			apk = zipfile.ZipFile(apkPath)
-
-			if "AndroidManifest.xml" in apk.namelist():
-				ap = xmlDecompiler.AXMLPrinter(apk.read("AndroidManifest.xml"))
-				buff = ap.get_xml_obj().toprettyxml()
-
-				if xmlPath == None:
-					return buff
-
-				else:
-					f = open(xmlPath, "w")
-					f.write(buff)
-					f.close()
-					return True
+			ap = xmlDecompiler.AXMLPrinter(apk.read("AndroidManifest.xml"))
+			buff = ap.get_xml_obj().toprettyxml()
 		except Exception, e:
-			log.warning(apkPath+" is not a zip file")
-
-		else:
-			log.warning(apkPath+" has no AndroidManifest.xml")
+			log.warning(apkPath+" xml can not be decoded")
 			return False
 
+		if xmlPath == None:
+			return buff
+
+		else:
+			f = open(xmlPath, "w")
+			f.write(buff)
+			f.close()
+			return True
 	else:
-		log.error(apkPath+"Unknown file type.")
+		log.warning(apkPath+" has no AndroidManifest.xml")
 		return False

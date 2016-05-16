@@ -202,5 +202,5 @@ class MachineLearning:
 				if proba > 0.1:
 					dangerousPermissions.append(permission)
 
-		return apkScore, dangerousPermissions
+		return apkScore, dangerousPermissions, permissionsList
 

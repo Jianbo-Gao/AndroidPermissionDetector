@@ -18,14 +18,14 @@ PARAM_DEFAULT_PATH = os.path.join(PARAM_DIR_PATH, "default")
 
 def get_args():
 	parser = argparse.ArgumentParser(
-		description="Process args for Android Permission Detecter")
+		description="Process args for Android Permission Detector")
 
 	parser.add_argument('file',
 						help='[Detect] The path of apk file to detect')
 
 	parser.add_argument('-V', '--version',
 						action='version',
-						version='Android Permission Detecter 1.0.2')
+						version='Android Permission Detector 1.0.2')
 
 	args = parser.parse_args()
 	return args
